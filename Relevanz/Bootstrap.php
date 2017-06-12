@@ -81,6 +81,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 			'version' => $this->info['version'],
 			'author' => $this->info['autor'],
 			'label' => $this->info['label'],
+//			'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="http://www.releva.nz" target="_blank">Noch nicht registriert? Jetzt nachholen</a></p>',
 			'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="http://www.releva.nz" target="_blank">'.$snippets['notRegistered'].'</a></p>',
 			'copyright' => 'Copyright © 2016, '.$this->info['copyright'],
 			'support' => 'support@releva.nz',
@@ -148,7 +149,8 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 				'label' => 'releva.nz User ID',
 				'scope' => \Shopware\Models\Config\Element::SCOPE_SHOP,
 				'stripCharsRe' => ' ',
-				'description' => 'This field will set by API Key'
+				'description' => 'This field will set by API Key',
+				'hidden' => true
 			)
 		);
 
@@ -654,8 +656,9 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 
 				$relevanzApiKeyId = $form->getElement('relevanzApiKey')->getId();
 				$relevanzApiKeyValue = $apiKey;
-				$relevanzUserIDId = $form->getElement('relevanzUserID')->getId();
+				//$relevanzUserIDId = $form->getElement('relevanzUserID')->getId();
 				$relevanzUserIDValue = $userId;
+				$relevanzUserIDId = $userId;
 
 				$sql = "SELECT * FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
 				$result = Shopware()->Db()->fetchRow($sql, array($relevanzApiKeyId, \Shopware\Models\Config\Element::SCOPE_SHOP));
