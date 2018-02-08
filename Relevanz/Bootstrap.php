@@ -20,11 +20,11 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 	);
 
 	protected $info = array(
-		'version'		=> '1.0.6',
+		'version'		=> '1.0.9',
 		'label'			=> 'releva.nz retargeting',
 		'description'	=> 'releva.nz retargeting',
 		'supplier'		=> 'releva.nz',
-		'autor'			=> 'releva.nz',
+		'author'			=> 'releva.nz',
 		'support'		=> 'releva.nz',
 		'copyright'		=> 'releva.nz',
 		'link'			=> 'http://www.releva.nz',
@@ -79,14 +79,17 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 
 		return array(
 			'version' => $this->info['version'],
-			'author' => $this->info['autor'],
+			'author' => $this->info['author'],
 			'label' => $this->info['label'],
-//			'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="http://www.releva.nz" target="_blank">Noch nicht registriert? Jetzt nachholen</a></p>',
 			'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="http://www.releva.nz" target="_blank">'.$snippets['notRegistered'].'</a></p>',
-			'copyright' => 'Copyright © 2016, '.$this->info['copyright'],
+			'copyright' => 'Copyright © 2017, '.$this->info['copyright'],
 			'support' => 'support@releva.nz',
 			'link' => $this->info['link'],
 		);
+	}
+
+	public function getVersion() {
+				return $this->info['version'];
 	}
 
 	public function getData() {
@@ -107,25 +110,28 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 		return true;
 	}
 
-	public function onRTPostDispatch(Enlight_Event_EventArgs $args) {
+	public function onRTPostDispatch(Enlight_Controller_ActionEventArgs $args) {
 		$subject = $args->getSubject();
 		$view = $subject->View();
 		$request  = $subject->Request();
 		$action = $request->getActionName();
 
+		
+		$version = Shopware()->Shop()->getTemplate()->getVersion();
+		$view->addTemplateDir(__DIR__.'/Views/');
 
 		if ($request->isXmlHttpRequest()) {
 			return;
 		}
 
-		$version = Shopware()->Shop()->getTemplate()->getVersion();
-
+		/*
 		if($version >= 3) {
 			$view->addTemplateDir(__DIR__.'/Views/frontend/Responsive');
 		} else {
-			$view->addTemplateDir(__DIR__.'/Views/frontend/Emotion');
+
 			$view->extendsTemplate('frontend/checkout/index.tpl');
 		}
+		*/
 
 		$configData = $this->Config()->toArray();
 		$view->baseURLRT = 'https://pix.hyj.mobi/rt?t=d&';
@@ -228,188 +234,6 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 		return true;
 	}
 
-	public function prepareDataToDisplay($view, $fillData) {
-		$rawData = json_decode($fillData);
-		$rawData->errorRead = 0;
-
-		$minDate = 0;
-		$maxDate = 0;
-
-		$snippets = $this->getSnippets();
-
-		$totalData = array(
-			'dd' => $snippets['totalData'],
-			'conversions' => 0,
-			'impressions' => 0,
-			'clicks' => 0,
-			'turnover' => 0,
-			'costs' => 0,
-		);
-
-		if(isset($rawData->query_result)) {
-			$dataMaxCount = 30;
-			$data = new stdClass;
-			$data->retrieved_at = $snippets['retrivedAt'].': '.date("d-m-Y H:i:s", strtotime($rawData->query_result->retrieved_at));
-
-			$grid = new stdClass;
-			$grid->fields = array(
-				'dd',
-				'conversions',
-				'impressions',
-				'clicks',
-				'turnover',
-				'costs',
-			);
-			$grid->autoLoad = true;
-
-			$gridData = array();
-			if(isset($_REQUEST['dataFrom']) && $_REQUEST['dataFrom'] != '') {
-				$dataFrom = strtotime($_REQUEST['dataFrom']);
-			} else {
-				$dataFrom = 0;
-			}
-			if(isset($_REQUEST['dataTo']) && $_REQUEST['dataTo'] != '') {
-				$dataTo = strtotime($_REQUEST['dataTo']);
-			} else {
-				$dataTo = 0;
-			}
-			if($dataFrom && $dataTo) {
-				$dataMaxCount = 0;
-			}
-			for($i = 0; $i < count($rawData->query_result->data->rows); $i++) {
-				$row = new stdClass;
-				$checkFrom = 0;
-				if($dataFrom) {
-					if(strtotime($rawData->query_result->data->rows[$i]->dd) >= $dataFrom) {
-						$checkFrom = 1;
-					}
-				} else {
-					$checkFrom = 1;
-				}
-				$checkTo = 0;
-				if($dataTo) {
-					if(strtotime($rawData->query_result->data->rows[$i]->dd) <= $dataTo) {
-						$checkTo = 1;
-					}
-				} else {
-					$checkTo = 1;
-				}
-				if($checkFrom && $checkTo) {
-					$row = $rawData->query_result->data->rows[$i];
-					$row->dd = date('d-m-Y', strtotime($row->dd));
-					$gridData[] = $row;
-				}
-			}
-
-			$formattedData = array();
-			$grid->data = $gridData;
-			if($dataMaxCount) {
-				for($i = 0; $i < $dataMaxCount; $i++) {
-					$data = $gridData[count($gridData) - 1 - $i];
-					if($data) {
-						array_unshift($formattedData, $data);
-					}
-				}
-				$grid->data = $formattedData;
-				$grid->graph = $formattedData;
-			} else {
-				$dataSetCount = count($gridData);
-
-				if($dataSetCount > 60) {
-					$formattedData = array();
-					$weeksCount = $dataSetCount / 7;
-					$weekStep = ceil($weeksCount / 60);
-					$stepLength = 7 * $weekStep;
-
-					$row = new stdClass;
-					$row->dd = '';
-					$row->conversions = 0;
-					$row->costs = 0;
-					$row->impressions = 0;
-					$row->clicks = 0;
-					$row->turnover = 0;
-					$nextStep = 0;
-
-					$nextStep = 0;
-					$nextCounter = 0;
-					for($i = 0; $i < count($gridData); $i++) {
-						if(!$nextStep) {
-							$row->dd = $gridData[$i]->dd;
-							$nextStep = 1;
-							$nextCounter++;
-						}
-						$row->conversions = $row->conversions + $gridData[$i]->conversions;
-						$row->costs = $row->costs + $gridData[$i]->costs;
-						$row->impressions = $row->impressions + $gridData[$i]->impressions;
-						$row->clicks = $row->clicks + $gridData[$i]->clicks;
-						$row->turnover = $row->turnover + $gridData[$i]->turnover;
-
-						if($i >= ($nextCounter * $stepLength - 1)) {
-							$formattedData[] = $row;
-
-							$row = new stdClass;
-							$row->dd = '';
-							$row->conversions = 0;
-							$row->costs = 0;
-							$row->impressions = 0;
-							$row->clicks = 0;
-							$row->turnover = 0;
-							$nextStep = 0;
-						}
-					}
-					$formattedData[] = $row;
-					$grid->data = $gridData;
-					$grid->graph = $formattedData;
-				} else {
-					$grid->data = $gridData;
-					$grid->graph = $gridData;
-				}
-			}
-
-			for($i = 0; $i < count($grid->data); $i++) {
-				$publishDate = DateTime::createFromFormat('d-m-Y', $grid->data[$i]->dd);
-				$publishDate->setTime(0, 0, 0);
-				$timeCheck = $publishDate->getTimestamp();
-
-				if(!$minDate || $minDate > $timeCheck) {
-					$minDate = $timeCheck;
-				}
-				if(!$maxDate || $maxDate < $timeCheck) {
-					$maxDate = $timeCheck;
-				}
-			}
-			$grid->minDate = $minDate;
-			$grid->maxDate = $maxDate;
-		}
-
-		for($i = 0; $i < count($grid->data); $i++) {
-			$totalData['conversions'] = $totalData['conversions'] + $grid->data[$i]->conversions;
-			$totalData['impressions'] = $totalData['impressions'] + $grid->data[$i]->impressions;
-			$totalData['clicks'] = $totalData['clicks'] + $grid->data[$i]->clicks;
-			$totalData['turnover'] = $totalData['turnover'] + $grid->data[$i]->turnover;
-			$totalData['costs'] = $totalData['costs'] + $grid->data[$i]->costs;
-		}
-
-		if($this->assertMinimumVersion('5.2')) {
-			$grid->csrfToken = 1;
-		} else {
-			$grid->csrfToken = 0;
-		}
-
-		$grid->data[] = (object)$totalData;
-
-		$grid->snippets = $snippets;
-
-		$waveCdnJson = json_encode($grid);
-
-		if(isset($_REQUEST['dataAction']) && $_REQUEST['dataAction'] == 'ajaxGetData') {
-			echo $waveCdnJson;
-			exit;
-		} else {
-			return $waveCdnJson;
-		}
-	}
-
 	public function onBackendWaveCdn(Enlight_Event_EventArgs $args) {
 		$controller = $args->getSubject();
 		$view = $controller->View();
@@ -422,56 +246,14 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 		$configData = $this->Config()->toArray();
 
 		$view->addTemplateDir($this->Path().'Views/');
+		$view->extendsTemplate('backend/relevanz/relevanz_app.js');
 
-		if($request->getActionName() == 'index' || (isset($_REQUEST['dataAction']) && $_REQUEST['dataAction'] == 'ajaxGetData')) {
-			$waveCdnWindow = '';
-			$windowAppend = '';
-			$readError = 0;
-			$windowAppend .= '<div id="wave-cdn-grid">'.$snippets['testData'].'</div>';
+		$relevanzApiKeyValue = $configData['relevanzApiKey'];
 
-			$relevanzApiKeyValue = $configData['relevanzApiKey'];
-			$relevanzUserIDValue = $configData['relevanzUserID'];
-
-			$readData = $this->getUserData($configData['relevanzApiKey']);
-
-			$waveConfigJson = array(
-				'relevanzApiKey'			=> $relevanzApiKeyValue,
-				'relevanzUserID'			=> $relevanzUserIDValue,
-				'relevanzTariffName'		=> $readData['data']['UserData']->tariff_name,
-				'relevanzTariffPricing'		=> $readData['data']['UserData']->pricing,
-				'relevanzBudget'			=> $readData['data']['UserData']->budget,
-			);
-
-			if(isset($_REQUEST['dataFrom']) && $_REQUEST['dataFrom'] != '') {
-				$dataFrom = date('Y-m-d', strtotime($_REQUEST['dataFrom']));
-			} else {
-				$dataFrom = date('Y-m-d', mktime(0, 0 , 0, date('m'), 1, date('Y')));
-			}
-			if(isset($_REQUEST['dataTo']) && $_REQUEST['dataTo'] != '') {
-				$dataTo = date('Y-m-d', strtotime($_REQUEST['dataTo']));
-			} else {
-				$dataTo = date('Y-m-d', mktime(0, 0 , 0, date('m'), date('t'), date('Y')));
-			}
-			$fillData = file_get_contents($this->apiUrl.'stats?apikey='.$configData['relevanzApiKey'].'&startdate='.$dataFrom.'&enddate='.$dataTo);
-
-			if($fillData) {
-				$view->waveConfigJson = json_encode($waveConfigJson);
-				$view->waveCdnJson = $this->prepareDataToDisplay($view, $fillData);
-			} else {
-				$jsonData = null;
-				$jsonData->errorRead = 1;
-				$jsonData->errorMessage = $snippets['anErrorOccurred'];
-				$view->waveConfigJson = json_encode($waveConfigJson);
-				$view->waveCdnJson = json_encode($jsonData);
-				$readError = 1;
-			}
-
-
-			$waveCdnWindow .= $windowAppend;
-			$view->waveCdnWindow = $waveCdnWindow;
-
-			$view->extendsTemplate('backend/relevanz/relevanz_app.js');
-		}
+		$waveConfigJson = array(
+			'relevanzApiKey'			=> $relevanzApiKeyValue
+		);
+		$view->waveConfigJson = json_encode($waveConfigJson);
 	}
 
 	public function readTranslations($locale) {
@@ -497,13 +279,6 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 		$currentLocale = $localeModel->getLocale();
 
 		$snippets = $this->readTranslations($currentLocale);
-/*		if(isset($this->translations[$currentLocale])) {
-			$snippets = $this->readTranslations($currentLocale);
-//			$snippets = $this->translations[$currentLocale];
-		} else {
-			$snippets = $this->readTranslations('de_DE');
-//			$snippets = $this->translations['de_DE'];
-		}*/
 
 		return $snippets;
 	}
@@ -535,7 +310,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 	public function onConfigElementSave($params) {
 		$element = $params['element'];
 		$subject = $params['subject'];
-        $config = $subject->Request()->getParams();
+    $config = $subject->Request()->getParams();
 
 		if($element->getName() == 'relevanzApiKey') {
 			$value = $config['relevanzApiKey'];
@@ -583,36 +358,6 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 					$message = $snippets['succesfullySaveData'];
 					$userId = $userData->user_id;
 					$code = $snippets['ok'];
-
-					if($apiBudget) {
-						$budgetLink = $this->apiUrl.'capping?apikey='.urlencode(trim($apiKey)).'&budget='.$apiBudget;
-						$ch = curl_init();
-						curl_setopt($ch, CURLOPT_URL, $budgetLink);
-						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-						curl_setopt($ch, CURLOPT_POST, 1);
-						curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Length: 0"));
-						$budgetData = curl_exec($ch);
-						$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-						curl_close($ch);
-
-						if($status == 200) {
-							$message = $snippets['succesfullySaveData'];
-							$userId = $userData->user_id;
-							$code = $snippets['ok'];
-						} elseif($status == 401) {
-							$message = $snippets['errorApiKey'];
-							$userId = $userData->user_id;
-							$code = $snippets['error'];
-						} elseif($status == 409) {
-							$message = $snippets['errorBudgetInputFormat'];
-							$userId = $userData->user_id;
-							$code = $snippets['error'];
-						} else {
-							$message = $snippets['serverReturnCode'].' '.$status;
-							$userId = $userData->user_id;
-							$code = $snippets['error'];
-						}
-					}
 				}
 
 				$data = array(
@@ -641,11 +386,11 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 		);
 	}
 
-	public function getUserIdAction($apiKey, $budget = 0) {
+	public function getUserIdAction($apiKey) {
 
 		$snippets = $this->getSnippets();
 
-		$readData = $this->getUserData($apiKey, $budget);
+		$readData = $this->getUserData($apiKey);
 
 		$userId = $readData['userId'];
 		$message = $readData['data']['Message'];
@@ -656,9 +401,8 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 
 				$relevanzApiKeyId = $form->getElement('relevanzApiKey')->getId();
 				$relevanzApiKeyValue = $apiKey;
-				//$relevanzUserIDId = $form->getElement('relevanzUserID')->getId();
+				$relevanzUserIDId = $form->getElement('relevanzUserID')->getId();
 				$relevanzUserIDValue = $userId;
-				$relevanzUserIDId = $userId;
 
 				$sql = "SELECT * FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
 				$result = Shopware()->Db()->fetchRow($sql, array($relevanzApiKeyId, \Shopware\Models\Config\Element::SCOPE_SHOP));

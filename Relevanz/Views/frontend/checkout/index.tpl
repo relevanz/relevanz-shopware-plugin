@@ -1,4 +1,8 @@
-{block name='frontend_index_header_javascript_jquery' append}
+{extends file="parent:frontend/checkout/finish.tpl"}
+
+{block name='frontend_index_header_javascript_jquery'}
+{$smarty.block.parent}
+  <!-- releva.nz conversion-->
   {if $Controller == 'index'}
     {$url=$baseURLRT}
     {$url=$url|cat:"action=s&cid="}
@@ -36,7 +40,6 @@
   {/if}
 
   {if $url}
-    <script type="text/javascript" src="{$url}" async="true">
-    </script>
+    <script type="text/javascript" src="{$url}" async="true"></script>
   {/if}
 {/block}

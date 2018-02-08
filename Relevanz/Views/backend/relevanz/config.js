@@ -28,14 +28,14 @@ Ext.define('Shopware.apps.Config.controller.MyMain', {
 		form.setDirty();
 
 //		var title = '{s name=form/message/save_form_title}Save form{/s}',
-		var title = dataSnippets.saveForm,
+		var title = 'Formular speichern',
 			win = me.getWindow();
 
 		form.store.add(form);
 		form.store.sync({
 			success :function (records, operation) {
 //				var template = new Ext.Template('{s name=form/message/save_form_success}Form „[name]“ has been saved.{/s}'),
-				var template = new Ext.Template(dataSnippets.formHasBeenSaved),
+				var template = new Ext.Template('Gespeichert'),
 					message = template.applyTemplate({
 						name: form.data.label || form.data.name
 					});
@@ -48,7 +48,7 @@ Ext.define('Shopware.apps.Config.controller.MyMain', {
 			},
 			failure:function (batch) {
 //				var template = new Ext.Template('{s name=form/message/save_form_error}Form „[name]“ could not be saved.{/s}'),
-				var template = new Ext.Template(dataSnippets.formCouldNotBeSaved),
+				var template = new Ext.Template('Daten konnten nicht gespeichert werden'),
 					message = template.applyTemplate({
 						name: form.data.label || form.data.name
 					});
