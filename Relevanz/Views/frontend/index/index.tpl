@@ -1,8 +1,10 @@
 {extends file="parent:frontend/index/index.tpl"}
 
-{block name='frontend_index_header_javascript_jquery'}
+{block name="frontend_index_header_javascript_jquery"}
+<!-- releva.nz -->
 {$smarty.block.parent}
   <!-- releva.nz -->
+  <!-- {$CampaignID}} -->
   {if $Controller == 'index'}
     {$url=$baseURLRT}
     {$url=$url|cat:"action=s&cid="}

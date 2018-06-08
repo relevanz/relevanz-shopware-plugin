@@ -20,7 +20,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 	);
 
 	protected $info = array(
-		'version'		=> '1.0.9',
+		'version'		=> '1.1.0',
 		'label'			=> 'releva.nz retargeting',
 		'description'	=> 'releva.nz retargeting',
 		'supplier'		=> 'releva.nz',
@@ -82,7 +82,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 			'author' => $this->info['author'],
 			'label' => $this->info['label'],
 			'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="http://www.releva.nz" target="_blank">'.$snippets['notRegistered'].'</a></p>',
-			'copyright' => 'Copyright © 2017, '.$this->info['copyright'],
+			'copyright' => 'Copyright © 2016-2018, '.$this->info['copyright'],
 			'support' => 'support@releva.nz',
 			'link' => $this->info['link'],
 		);
@@ -118,20 +118,11 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 
 		
 		$version = Shopware()->Shop()->getTemplate()->getVersion();
-		$view->addTemplateDir(__DIR__.'/Views/');
+		$view->addTemplateDir(__DIR__ . '/Views/');
 
 		if ($request->isXmlHttpRequest()) {
 			return;
 		}
-
-		/*
-		if($version >= 3) {
-			$view->addTemplateDir(__DIR__.'/Views/frontend/Responsive');
-		} else {
-
-			$view->extendsTemplate('frontend/checkout/index.tpl');
-		}
-		*/
 
 		$configData = $this->Config()->toArray();
 		$view->baseURLRT = 'https://pix.hyj.mobi/rt?t=d&';
