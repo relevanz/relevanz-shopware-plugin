@@ -1,6 +1,6 @@
-{extends file="parent:frontend/index/index.tpl"}
+{extends file="parent:frontend/index/header.tpl"}
 
-{block name="frontend_index_header_javascript_jquery"}
+{block name="frontend_index_header_javascript_tracking"}
 {$smarty.block.parent}
   <script type="text/javascript">
   // releva.nz Plugin - {$CampaignID} - {$Controller} -  {$url}
@@ -21,7 +21,7 @@
     {$url=$url|cat:{$CampaignID}}
     {$url=$url|cat:"&id="}
     {$url=$url|cat:{$sArticle.articleID}}
-  {elseif $Controller == 'checkout'}
+  {elseif $Controller == 'checkout' && {controllerAction} == 'finish'}
       {if $sOrderNumber}
         {foreach $sBasket.content as $product}
           {if $product.articleID != 0}

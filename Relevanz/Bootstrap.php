@@ -320,7 +320,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 		}
 	}
 
-	public function getUserData($apiKey, $apiBudget) {
+	public function getUserData($apiKey) {
 
 		$snippets = $this->getSnippets();
 
