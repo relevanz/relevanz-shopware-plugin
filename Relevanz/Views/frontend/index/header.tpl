@@ -38,14 +38,9 @@
       {/if}
   {/if}
 
-  <script type="text/javascript">
-  {literal}var relevanzRetargetingConfig = {
-      CampaignID: "{/literal}{$CampaignID}{literal}",
-      Controller: "{/literal}{$Controller}{literal}",
-      url: "{/literal}{$url}{literal}",
-  };{/literal}
-  </script>
   {if $url}
-    <script type="text/javascript" src="{$url}" async="true"></script>
+    <script type="text/javascript">{literal}
+        var relevanzRetargetingUrl = "{/literal}{$url}{literal}";
+    {/literal}</script>
   {/if}
 {/block}
