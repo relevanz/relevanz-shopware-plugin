@@ -2,9 +2,6 @@
 
 {block name="frontend_index_header_javascript_tracking"}
 {$smarty.block.parent}
-  <script type="text/javascript">
-  // releva.nz Plugin - {$CampaignID} - {$Controller} -  {$url}
-  </script>
   {if $Controller == 'index'}
     {$url=$baseURLRT}
     {$url=$url|cat:"action=s&cid="}
@@ -41,6 +38,13 @@
       {/if}
   {/if}
 
+  <script type="text/javascript">
+  {literal}var relevanzRetargetingConfig = {
+      CampaignID: "{/literal}{$CampaignID}{literal}",
+      Controller: "{/literal}{$Controller}{literal}",
+      url: "{/literal}{$url}{literal}",
+  };{/literal}
+  </script>
   {if $url}
     <script type="text/javascript" src="{$url}" async="true"></script>
   {/if}

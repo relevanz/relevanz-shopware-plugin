@@ -199,29 +199,31 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         $this->addFormTranslations($translations);
     }
 
+    public function collectCookies(Enlight_Event_EventArgs $event) {
+        $collection = new \Shopware\Bundle\CookieBundle\CookieCollection();
+        $collection->add(new \Shopware\Bundle\CookieBundle\Structs\CookieStruct(
+            'relevanz',
+            '/^relevanz/',
+            'releva.nz Retargeting',
+            Shopware\Bundle\CookieBundle\Structs\CookieGroupStruct::STATISTICS
+        ));
+        return $collection;
+    }
+
+    public function collectJavascript(Enlight_Event_EventArgs $args) {
+        return new Doctrine\Common\Collections\ArrayCollection(array(__DIR__ . '/Views/frontend/_public/src/js/relevanz.js'));
+    }
+
     protected function createEvents() {
-        $this->subscribeEvent(
-                'Enlight_Controller_Action_PostDispatch_Backend_Index',
-                'PostDispatchBackendPluginManager'
-        );
-
-        $this->subscribeEvent(
-                'Enlight_Controller_Dispatcher_ControllerPath_Backend_Relevanz',
-                'getBackendController'
-        );
-
-        $this->subscribeEvent(
-                'Enlight_Controller_Action_PostDispatch_Backend_Relevanz',
-                'onBackendWaveCdn'
-        );
-
-        $this->subscribeEvent(
-                'Shopware_Controllers_Backend_Config_After_Save_Config_Element',
-                'onConfigElementSave'
-        );
-
-        $this->registerController('Backend', 'Relevanz');
-
+        $this
+            ->subscribeEvent('Theme_Compiler_Collect_Plugin_Javascript', 'collectJavascript')
+            ->subscribeEvent('CookieCollector_Collect_Cookies', 'collectCookies')
+            ->subscribeEvent('Enlight_Controller_Action_PostDispatch_Backend_Index', 'PostDispatchBackendPluginManager')
+            ->subscribeEvent('Enlight_Controller_Dispatcher_ControllerPath_Backend_Relevanz', 'getBackendController')
+            ->subscribeEvent('Enlight_Controller_Action_PostDispatch_Backend_Relevanz', 'onBackendWaveCdn')
+            ->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element', 'onConfigElementSave')
+            ->registerController('Backend', 'Relevanz')
+        ;
         return true;
     }
 
