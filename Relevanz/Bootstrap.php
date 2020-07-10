@@ -1,4 +1,5 @@
 <?php
+!file_exists(__DIR__ . '/vendor/autoload.php') || require_once __DIR__ . '/vendor/autoload.php';
 
 class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Plugin_Bootstrap {
 
@@ -32,7 +33,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         'license' => null,
         'revision' => null
     );
-    public $apiUrl = 'https://api.hyj.mobi/';
+//    public $apiUrl = 'https://api.hyj.mobi/';
 
     /*
      * -------------------------
@@ -124,8 +125,8 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         }
 
         $configData = $this->Config()->toArray();
-        $view->baseURLRT = 'https://pix.hyj.mobi/rt?t=d&';
-        $view->baseURLConv = 'https://d.hyj.mobi/convNetw?';
+        $view->baseURLRT = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_TRACKER_URL . '?t=d&';
+        $view->baseURLConv = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_CONV_URL . 'Netw?';
         $view->CampaignID = $configData['relevanzUserID'];
     }
 
@@ -323,48 +324,33 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     }
 
     public function getUserData($apiKey) {
-
         $snippets = $this->getSnippets();
-
         if ($apiKey) {
             try {
-                $testLink = $this->apiUrl . 'user/get?apikey=' . urlencode(trim($apiKey));
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $testLink);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                $userData = curl_exec($ch);
-                $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
-
-                if ($status != 200) {
-                    try {
-                        $userData = json_decode($userData);
-                        $message = $snippets['serverResponse'] . ': ' . $userData->message;
-                    } catch (Exception $e) {
-                        $message = $snippets['serverReturnCode'] . ' ' . $status;
-                    }
-                    $userId = '';
-                    $code = $snippets['error'];
-                    $userData = array();
-                } else {
-                    $userData = json_decode($userData);
-                    $message = $snippets['succesfullySaveData'];
-                    $userId = $userData->user_id;
-                    $code = $snippets['ok'];
-                }
-
+                $credentials = \Releva\Retargeting\Base\RelevanzApi::verifyApiKey($apiKey);
+                $userId = $credentials->getUserId();
                 $data = array(
-                    'Code' => $code,
-                    'Message' => $message,
+                    'Code' => $snippets['ok'],
+                    'Message' => $snippets['succesfullySaveData'],
                     'Id' => $userId,
-                    'UserData' => $userData,
                 );
-            } catch (Exception $e) {
+            } catch (Releva\Retargeting\Base\Exception\RelevanzException $exception) {//@todo use translations
+                $userId = '';
                 $data = array(
-                    'Code' => $e->getCode(),
-                    'Message' => $e->getMessage(),
+                    'Code' => __LINE__,
+                    'Message' => vsprintf($exception->getMessage(), $exception->getSprintfArgs()),
+                );
+            } catch (\Exception $exception) {
+                $userId = '';
+                $data = array(
+                    'Code' => $exception->getCode(),
+                    'Message' => $exception->getMessage(),
                 );
             }
+            return array(
+                'userId' => $userId,
+                'data' => $data,
+            );
         } else {
             $data = array(
                 'Code' => $snippets['error'],
@@ -372,7 +358,6 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
                 'Id' => '',
             );
         }
-
         return array(
             'userId' => $userId,
             'data' => $data,
