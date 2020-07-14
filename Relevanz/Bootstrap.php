@@ -1,5 +1,4 @@
 <?php
-!file_exists(__DIR__ . '/vendor/autoload.php') || require_once __DIR__ . '/vendor/autoload.php';
 
 class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Plugin_Bootstrap {
 
@@ -63,17 +62,22 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     public function enable() {
         return array(
             'success' => true,
-            'invalidateCache' => array('config', 'backend', 'proxy')
+            'invalidateCache' => array('config', 'backend', 'proxy', 'theme')
         );
     }
 
     public function disable() {
         return array(
             'success' => true,
-            'invalidateCache' => array('config', 'backend')
+            'invalidateCache' => array('config', 'backend', 'theme')
         );
     }
 
+    public function afterInit()
+    {
+        !file_exists(__DIR__ . '/vendor/autoload.php') || require_once __DIR__ . '/vendor/autoload.php';
+        $this->get('Loader')->registerNamespace('Releva\Retargeting\Shopware\Internal', $this->Path().'Internal/');
+    }
     public function getInfo() {
         $snippets = $this->getSnippets();
 
@@ -221,6 +225,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
             ->subscribeEvent('CookieCollector_Collect_Cookies', 'collectCookies')
             ->subscribeEvent('Enlight_Controller_Action_PostDispatch_Backend_Index', 'PostDispatchBackendPluginManager')
             ->subscribeEvent('Enlight_Controller_Dispatcher_ControllerPath_Backend_Relevanz', 'getBackendController')
+            ->subscribeEvent('Enlight_Controller_Dispatcher_ControllerPath_Frontend_Relevanz', 'getFrontendController')
             ->subscribeEvent('Enlight_Controller_Action_PostDispatch_Backend_Relevanz', 'onBackendWaveCdn')
             ->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element', 'onConfigElementSave')
             ->registerController('Backend', 'Relevanz')
@@ -290,6 +295,9 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         $subject = $args->getSubject();
         $view = $subject->View();
     }
+    public function getFrontendController(Enlight_Event_EventArgs $args) {
+        return $this->Path() . '/Controllers/Frontend/Relevanz.php';
+    }
 
     public function getBackendController(Enlight_Event_EventArgs $args) {
         $this->Application()->Template()->addTemplateDir(
@@ -327,7 +335,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         $snippets = $this->getSnippets();
         if ($apiKey) {
             try {
-                $credentials = \Releva\Retargeting\Base\RelevanzApi::verifyApiKey($apiKey);
+                $credentials = \Releva\Retargeting\Base\RelevanzApi::verifyApiKey($apiKey, ['callback-url' => Releva\Retargeting\Shopware\Internal\ShopInfo::getUrlCallback(), ]);
                 $userId = $credentials->getUserId();
                 $data = array(
                     'Code' => $snippets['ok'],
