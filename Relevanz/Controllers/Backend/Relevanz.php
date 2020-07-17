@@ -41,17 +41,6 @@ class Shopware_Controllers_Backend_Relevanz extends Shopware_Controllers_Backend
         
     }
 
-    public function requestretargetingdataAction() {
-        exit;
-    }
-
-    public function saveFormAction() {
-        $relevanzApiKey = $this->Request()->getParam('relevanzApiKey', '');
-        $relevanzBudget = $this->Request()->getParam('relevanzBudget', 0);
-        $data = $this->plugin->getUserIdAction($relevanzApiKey, $relevanzBudget);
-        $this->View()->assign($data);
-    }
-
     public function testClientAction() {
         $config = $this->Request()->getParams();
         $data = $this->plugin->getUserIdAction($config['relevanzApiKey']);

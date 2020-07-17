@@ -163,6 +163,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
                     'label' => 'relevan.nz API Key',
                     'scope' => \Shopware\Models\Config\Element::SCOPE_SHOP,
                     'stripCharsRe' => ' ',
+                    'handler' => "function(f){alert();}"
                 )
         );
 
@@ -285,10 +286,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     public function PostDispatchBackendPluginManager(Enlight_Event_EventArgs $args) {
         $controller = $args->getSubject();
         $view = $controller->View();
-
         $view->addTemplateDir($this->Path() . 'Views/');
-        $view->extendsTemplate('backend/relevanz/form.js');
-        $view->extendsTemplate('backend/relevanz/config.js');
     }
 
     public function saveFormActionBefore(Enlight_Event_EventArgs $args) {
@@ -308,34 +306,35 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
 
         return $this->Path() . '/Controllers/Backend/Relevanz.php';
     }
-
+    
     public function onConfigElementSave($params) {
-        $element = $params['element'];
-        $subject = $params['subject'];
-        $config = $subject->Request()->getParams();
-
-        if ($element->getName() == 'relevanzApiKey') {
-            $value = $config['relevanzApiKey'];
-            $elements = $config['elements'];
-            for ($i = 0; $i < count($elements); $i++) {
-                if ($elements[$i]['name'] == 'relevanzApiKey') {
-                    $values = $elements[$i]['values'];
-                    for ($j = 0; $j < count($values); $j++) {
-                        if ($values[$j]['shopId'] == \Shopware\Models\Config\Element::SCOPE_SHOP) {
-                            $value = $values[$j]['value'];
-                            $return = $this->getUserIdAction($value);
-                        }
+        if ($params['element']->getName() == 'relevanzApiKey') {
+            $config = $params['subject']->Request()->getParams();
+            foreach ($config['elements'] as $configElement) {
+                if ($configElement['name'] === 'relevanzApiKey') {
+                    foreach ($configElement['values'] as $configScopeValue) {
+                        $this->getUserData($configScopeValue['value'], $configScopeValue['shopId']);// saves user-id
                     }
+                    break;
                 }
             }
         }
     }
-
-    public function getUserData($apiKey) {
+    
+    public function getUserData($apiKey, $shopId = null) {
         $snippets = $this->getSnippets();
         if ($apiKey) {
+            if ($shopId) {
+                $shop = $this->get('shopware_storefront.context_service')->createShopContext($shopId)->getShop();
+                $routerContext = Shopware()->Front()->Router()->getContext();
+                Shopware()->Front()->Router()->setContext(new Shopware\Components\Routing\Context($shop->getHost(), $shop->getUrl(), $shop->getSecure()));
+                $params = ['callback-url' => Releva\Retargeting\Shopware\Internal\ShopInfo::getUrlCallback(), ];
+                Shopware()->Front()->Router()->setContext($routerContext);
+            } else {
+                $params = [];
+            }
             try {
-                $credentials = \Releva\Retargeting\Base\RelevanzApi::verifyApiKey($apiKey, ['callback-url' => Releva\Retargeting\Shopware\Internal\ShopInfo::getUrlCallback(), ]);
+                $credentials = \Releva\Retargeting\Base\RelevanzApi::verifyApiKey($apiKey, $params);
                 $userId = $credentials->getUserId();
                 $data = array(
                     'Code' => $snippets['ok'],
@@ -343,28 +342,43 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
                     'Id' => $userId,
                 );
             } catch (Releva\Retargeting\Base\Exception\RelevanzException $exception) {//@todo use translations
-                $userId = '';
+                $userId = null;
                 $data = array(
                     'Code' => __LINE__,
                     'Message' => vsprintf($exception->getMessage(), $exception->getSprintfArgs()),
                 );
             } catch (\Exception $exception) {
-                $userId = '';
+                $userId = null;
                 $data = array(
                     'Code' => $exception->getCode(),
                     'Message' => $exception->getMessage(),
                 );
             }
-            return array(
-                'userId' => $userId,
-                'data' => $data,
-            );
         } else {
+            $userId = null;
             $data = array(
                 'Code' => $snippets['error'],
                 'Message' => $snippets['messageApiKeyCanNotBeEmpty'],
-                'Id' => '',
+                'Id' => $userId,
             );
+        }
+        if ($shopId !== null) {
+            $form = $this->Form();
+            $relevanzUserElementId = $form->getElement('relevanzUserID')->getId();
+            if ($userId === null) {
+                $sql = "DELETE FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
+                Shopware()->Db()->query($sql, array($relevanzUserElementId, $shopId));
+            } else {
+                $sql = "SELECT * FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
+                $result = Shopware()->Db()->fetchRow($sql, array($relevanzUserElementId, $shopId));
+                if (isset($result['id'])) {
+                    $sql = "UPDATE `s_core_config_values` SET `value`= ? WHERE id = ?";
+                    Shopware()->Db()->query($sql, array(serialize($userId), $result['id']));
+                } else {
+                    $sql = "INSERT INTO `s_core_config_values` (`element_id`, `shop_id`, `value`) VALUES (?, ?, ?)";
+                    Shopware()->Db()->query($sql, array($relevanzUserElementId, $shopId, serialize($userId)));
+                }
+            }
         }
         return array(
             'userId' => $userId,
@@ -373,43 +387,14 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     }
 
     public function getUserIdAction($apiKey) {
-
         $snippets = $this->getSnippets();
 
         $readData = $this->getUserData($apiKey);
 
         $userId = $readData['userId'];
         $message = $readData['data']['Message'];
-
         if ($readData['userId']) {
             if ($userId) {
-                $form = $this->Form();
-
-                $relevanzApiKeyId = $form->getElement('relevanzApiKey')->getId();
-                $relevanzApiKeyValue = $apiKey;
-                $relevanzUserIDId = $form->getElement('relevanzUserID')->getId();
-                $relevanzUserIDValue = $userId;
-
-                $sql = "SELECT * FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
-                $result = Shopware()->Db()->fetchRow($sql, array($relevanzApiKeyId, \Shopware\Models\Config\Element::SCOPE_SHOP));
-                if (isset($result['id'])) {
-                    $sql = "UPDATE `s_core_config_values` SET `value`= ? WHERE id = ?";
-                    Shopware()->Db()->query($sql, array(serialize($relevanzApiKeyValue), $result['id']));
-                } else {
-                    $sql = "INSERT INTO `s_core_config_values` (`element_id`, `shop_id`, `value`) VALUES (?, ?, ?)";
-                    Shopware()->Db()->query($sql, array($relevanzApiKeyId, \Shopware\Models\Config\Element::SCOPE_SHOP, serialize($relevanzApiKeyValue)));
-                }
-
-                $sql = "SELECT * FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
-                $result = Shopware()->Db()->fetchRow($sql, array($relevanzUserIDId, \Shopware\Models\Config\Element::SCOPE_SHOP));
-                if (isset($result['id'])) {
-                    $sql = "UPDATE `s_core_config_values` SET `value`= ? WHERE id = ?";
-                    Shopware()->Db()->query($sql, array(serialize($relevanzUserIDValue), $result['id']));
-                } else {
-                    $sql = "INSERT INTO `s_core_config_values` (`element_id`, `shop_id`, `value`) VALUES (?, ?, ?)";
-                    Shopware()->Db()->query($sql, array($relevanzUserIDId, \Shopware\Models\Config\Element::SCOPE_SHOP, serialize($relevanzUserIDValue)));
-                }
-
                 $data = array(
                     'Code' => $snippets['ok'],
                     'Message' => $message,
@@ -429,10 +414,6 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         }
 
         return $data;
-    }
-
-    public function indexAction() {
-        
     }
 
     private function createMenu() {

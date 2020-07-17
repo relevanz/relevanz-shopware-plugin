@@ -24,18 +24,12 @@ class ShopInfo extends \Releva\Retargeting\Base\AbstractShopInfo {
         ];
     }
     
-    /**
-     * @todo actually works only in frontend
-     */
     public static function getUrlCallback(): string {
-        return Shopware()->Front()->Router()->assemble(array('controller' => 'relevanz', 'action' => 'callback'));
+        return Shopware()->Front()->Router()->assemble(array('module' => 'frontend', 'controller' => 'relevanz', 'action' => 'callback'));
     }
 
-    /**
-     * @todo actually works only in frontend
-     */
     public static function getUrlProductExport(): string {
-        return Shopware()->Front()->Router()->assemble(array('controller' => 'relevanz', 'action' => 'productexport'));
+        return Shopware()->Front()->Router()->assemble(array('module' => 'frontend', 'controller' => 'relevanz', 'action' => 'productexport'));
     }
 
 }
