@@ -46,12 +46,8 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
     }
     
     private function checkCredentials() {
-        
-        $configData = Shopware()->Container()->get('plugins')->Backend()->Relevanz()->getData();
-        $credentials = new Releva\Retargeting\Base\Credentials(
-            $configData['relevanzApiKey'],
-            $configData['relevanzUserID']
-        );
+        $dataHelper = Shopware()->Container()->get('plugins')->Backend()->Relevanz()->getDataHelper();
+        $credentials = new Releva\Retargeting\Base\Credentials($dataHelper->getData('relevanzApiKey'), $dataHelper->getData('relevanzUserID'));
         return $credentials->isComplete() && $credentials->getAuthHash() === $this->Request()->get('auth');
     }
 
