@@ -61,9 +61,8 @@ Ext.Ajax.request({
     },
     failure: function (response, options) {
         var title = '<span style=\"font-weight: bold;\">Error</span>',
-                //var title = '<span style=\"font-weight: bold;\">' + dataSnippets.error + '</span>',
-                text = '<span style=\"color: red;font-weight: bold;\">Failed! Please check the configuration options to see if the plugin is active.</span>';
-                //text = '<span style=\"color: red;font-weight: bold;\">' + dataSnippets.messageFailedPleaseCheckTheConfiguration + '</span>';
+            text = '<span style=\"color: red;font-weight: bold;\">Failed! Please check the configuration options to see if the plugin is active.</span>'
+        ;
         Shopware.Notification.createStickyGrowlMessage({
             title: title,
             text: text,

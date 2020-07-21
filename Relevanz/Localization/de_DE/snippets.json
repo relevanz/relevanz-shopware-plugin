@@ -1,1 +1,13 @@
-{"testData":"Um die Statistiken angezeigt zu bekommen, brauchen Sie das Plugin zu konfigurieren.","retrivedAt":"Abgerufen am","totalData":"Gesamt","advancedStatistics":"Erweiterte Statistiken","dailyBudget":"T\u00e4gliches Budget","currentTariff":"Tarif","monthlyPricing":"Monatliche Preisgestaltung","relevanzUserID":"releva.nz User ID","relevanzApiKey":"releva.nz API Key","statistics":"Statistiken","configuration":"Konfiguration","anErrorOccurred":"Fehler beim Daten-Empfang entstanden. Bitte pr\u00fcfen Sie die Zugangsdaten und versuchen es dann neu.","date":"Datem","conversions":"Transaktionen","impressions":"Impressions","clicks":"Klicks","costs":"Kosten","turnover":"Umsatz","tableData":"Tabellendaten","graphData":"Grafische Daten","selectFrom":"Datum von","selectTo":"Datum bis","serverResponse":"Serverantwort","serverReturnCode":"Code für HTTP-Server","error":"Fehler","succesfullySaveData":"Daten erfolgreich speichern","ok":"OK","errorApiKey":"Fehler-API-Schlüssel","errorBudgetInputFormat":"Fehler Budget Eingabeformat","messageApiKeyCanNotBeEmpty":"Der API-Schlüssel darf nicht leer sein","saveForm":"Formular speichern","formHasBeenSaved":"Form \u201e[name]\u201c wurde gespeichert.","formCouldNotBeSaved":"Form \u201e[name]\u201c konnte nicht gespeichert werden.","reset":"Zurücksetzen","save":"Speichern","messageFailedPleaseCheckTheConfiguration":"Fehlgeschlagen! Bitte pr\u00fcfen Sie die Konfigurationsoptionen, ob das Plugin aktiv ist.","relevanzButtonClientTest":"Jetzt API Key testen","relevanzButtonClientRegister":"Noch nicht registriert? Jetzt nachholen"}
+{
+    "successCode":"OK",
+    "successMessage":"Daten erfolgreich speichern",
+    "errorCode":"Fehler",
+    "error_1553934614":"Der API-Schlüssel darf nicht leer sein",
+    "error_1553935786":"Ihr API Key für releva.nz fehlerhaft.",
+    "error_1553935569":"Ihr API Key für releva.nz fehlerhaft.",
+    "error_1553935480":"Kann keine Verbindung zum releva.nz API-Server herstellen.",
+    "relevanzUserID":"releva.nz User ID",
+    "relevanzApiKey":"releva.nz API Key",
+    "relevanzButtonClientTest":"Jetzt API Key testen",
+    "relevanzButtonClientRegister":"Noch nicht registriert? Jetzt nachholen"
+}

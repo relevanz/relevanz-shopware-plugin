@@ -160,11 +160,27 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     
     public function onShopwareControllersBackendConfigAfterSaveConfigElement($params) {
         if ($params['element']->getName() == 'relevanzApiKey') {
+            $form = $this->Form();
+            $relevanzUserElementId = $form->getElement('relevanzUserID')->getId();
             $config = $params['subject']->Request()->getParams();
             foreach ($config['elements'] as $configElement) {
                 if ($configElement['name'] === 'relevanzApiKey') {
                     foreach ($configElement['values'] as $configScopeValue) {
-                        $this->getDataHelper()->verifyApiKey($configScopeValue['value'], $configScopeValue['shopId']);// saves user-id
+                        try {
+                            $userId = $this->getDataHelper()->verifyApiKey($configScopeValue['value'], $configScopeValue['shopId']);// saves user-id
+                            $sql = "SELECT * FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
+                            $result = \Shopware()->Db()->fetchRow($sql, array($relevanzUserElementId, $configScopeValue['shopId']));
+                            if (isset($result['id'])) {
+                                $sql = "UPDATE `s_core_config_values` SET `value`= ? WHERE id = ?";
+                                \Shopware()->Db()->query($sql, array(serialize($userId), $result['id']));
+                            } else {
+                                $sql = "INSERT INTO `s_core_config_values` (`element_id`, `shop_id`, `value`) VALUES (?, ?, ?)";
+                                \Shopware()->Db()->query($sql, array($relevanzUserElementId, $configScopeValue['shopId'], serialize($userId)));
+                            }
+                        } catch (\Exception $exception) {
+                            $sql = "DELETE FROM `s_core_config_values` WHERE element_id = ? AND shop_id = ?";
+                            \Shopware()->Db()->query($sql, array($relevanzUserElementId, $configScopeValue['shopId']));
+                        }
                     }
                     break;
                 }

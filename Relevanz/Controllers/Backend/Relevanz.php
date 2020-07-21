@@ -43,30 +43,25 @@ class Shopware_Controllers_Backend_Relevanz extends Shopware_Controllers_Backend
 
     public function testClientAction() {
         $config = $this->Request()->getParams();
-        $snippets = $this->plugin->getLocalizationHelper()->readTranslations();
-        $readData = $this->plugin->getDataHelper()->verifyApiKey($config['relevanzApiKey']);
-        $userId = $readData['userId'];
-        $message = $readData['data']['Message'];
-        if ($readData['userId']) {
-            if ($userId) {
-                $data = array(
-                    'Code' => $snippets['ok'],
-                    'Message' => $message,
-                    'Id' => $userId,
-                );
-            } else {
-                $data = array(
-                    'Code' => $snippets['error'],
-                    'Message' => $message,
-                );
-            }
-        } else {
+        try {
+            $this->plugin->getDataHelper()->verifyApiKey($config['relevanzApiKey']);//throws exception
             $data = array(
-                'Code' => $snippets['error'],
-                'Message' => $message,
+                'Code' => $this->plugin->getLocalizationHelper()->translate('successCode'),
+                'Message' => $this->plugin->getLocalizationHelper()->translate('successMessage'),
+                'Id' => $userId,
+            );
+        } catch (\Releva\Retargeting\Base\Exception\RelevanzException $exception) {
+            $data = array(
+                'Code' => $this->plugin->getLocalizationHelper()->translate('errorCode'),
+                'Message' => $this->plugin->getLocalizationHelper()->translateRelevanzException($exception).' ('.$exception->getCode().')',
+            );
+        } catch (\Exception $exception) {
+            $userId = null;
+            $data = array(
+                'Code' => $this->plugin->getLocalizationHelper()->translate('errorCode'),
+                'Message' => $exception->getMessage().' ('.$exception->getCode().')',
             );
         }
-        
         $this->View()->assign($data);
     }
 
