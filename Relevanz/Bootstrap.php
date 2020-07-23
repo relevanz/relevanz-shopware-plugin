@@ -2,12 +2,21 @@
 
 class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Plugin_Bootstrap {
 
-
+    private $messageBridge;
+    
     private $localizationHelper;
     
     private $formHelper;
     
     private $dataHelper;
+    
+    
+    public function getMessageBridge () {
+        if ($this->messageBridge === null) {
+            $this->messageBridge = new \Releva\Retargeting\Shopware\Internal\MessagesBridge();
+        }
+        return $this->messageBridge;
+    }
     
     public function getLocalizationHelper () {
         if ($this->localizationHelper === null) {

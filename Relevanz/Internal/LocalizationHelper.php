@@ -45,7 +45,6 @@ class LocalizationHelper extends AbstractHelper {
         return array_key_exists($key, $translations) ? $translations[$key] : '';
     }
 
-
     public function translateRelevanzException($exception, $locale = null) {
         if ($this->translate('error_'.$exception->getCode()) !== null) {
             return $this->translate('error_'.$exception->getCode(), $locale).(
