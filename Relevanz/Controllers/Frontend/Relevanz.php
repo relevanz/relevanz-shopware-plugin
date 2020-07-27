@@ -1,32 +1,44 @@
 <?php
 
+use Releva\Retargeting\Shopware\Internal\ProductExporter;
+use Symfony\Component\HttpFoundation\Response;
+
 class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
 {
     private const ITEMS_PER_PAGE = 50;
-    /**
-     * Pre dispatch method
-     *
-     * Sets the scope
-     */
+    
     public function preDispatch()
     {
         Shopware()->Plugins()->Controller()->ViewRenderer()->setNoRender();
     }
     
-    /**
-     * @todo
-     */
     public function productExportAction () {
-        
+        if ($this->checkCredentials()) {
+            $request = $this->Request();
+            $page = (int) $request->get('page') < 1 ? null : (int) $request->get('page') - 1;
+            $context = $this->container->get('shopware_storefront.context_service')->getShopContext();
+            $criteria = $this->container->get('shopware_search.store_front_criteria_factory')->createListingCriteria($this->Request(), $context);
+            try {
+                $productExporter = new ProductExporter();
+                $exporter = $productExporter->export($context, $criteria,
+                    $request->get('format') === 'json' ? ProductExporter::FORMAT_JSON : ProductExporter::FORMAT_CSV,
+                    $page === null ? null : self::ITEMS_PER_PAGE,
+                    $page === null ? 0 : $page * self::ITEMS_PER_PAGE
+                );
+                $this->Response()->setContent($exporter->getContents())->setStatusCode(200);
+                foreach ($exporter->getHttpHeaders() as $name => $value) {
+                    $this->Response()->setHeader($name, $value);
+                }
+            } catch (\Exception $exception) {
+                $this->Response()->setStatusCode($exception instanceof \Releva\Retargeting\Base\Exception\RelevanzException && $exception->getCode() === 1585554289 ? 400 : 500);
+            }
+        }
     }
     
     public function callbackAction () {
-        $response = new Symfony\Component\HttpFoundation\JsonResponse();
-        if (!$this->checkCredentials()) {
-            $response->setStatusCode(401)->setData([]);
-        } else {
+        if ($this->checkCredentials()) {
             $shopInfo = new \Releva\Retargeting\Shopware\Internal\ShopInfo();
-            $response->setData([
+            $this->Response()->setHeader( 'Content-Type', 'application/json; charset="utf-8"')->setContent(json_encode([
                 'plugin-version' => $shopInfo->getPluginVersion(),
                 'shop' => ['system' => $shopInfo->getShopSystem(), 'version' => $shopInfo->getShopVersion(), ],
                 'environment' => $shopInfo->getServerEnvironment(),
@@ -40,15 +52,20 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
                         ],
                     ],
                 ]
-            ]);
+            ], JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION));
         }
-        $response->send();
     }
     
     private function checkCredentials() {
         $dataHelper = Shopware()->Container()->get('plugins')->Backend()->Relevanz()->getDataHelper();
         $credentials = new Releva\Retargeting\Base\Credentials($dataHelper->getData('relevanzApiKey'), $dataHelper->getData('relevanzUserID'));
-        return $credentials->isComplete() && $credentials->getAuthHash() === $this->Request()->get('auth');
+        if ($credentials->isComplete() && $credentials->getAuthHash() === $this->Request()->get('auth')) {
+            return true;
+        } else {
+            $this->Response()->setStatusCode(401);
+            Shopware()->Container()->get('plugins')->Backend()->Relevanz()->getMessageBridge()->addError('Wrong Credentials', array('code' => 1595659947, 'auth' => $this->Request()->get('auth')));
+            return false;
+        }
     }
 
 }

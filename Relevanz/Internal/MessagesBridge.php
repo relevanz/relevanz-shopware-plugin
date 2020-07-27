@@ -8,7 +8,7 @@ class MessagesBridge {
      */
     private $logger;
     
-    public function getLogger () {
+    private function getLogger () {
         if ($this->logger === null) {
             $this->logger = \Shopware()->Container()->get('pluginlogger')->withName('relvanzRetargeting');
         }
