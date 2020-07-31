@@ -44,7 +44,7 @@ class Shopware_Controllers_Backend_Relevanz extends Shopware_Controllers_Backend
     public function testClientAction() {
         $config = $this->Request()->getParams();
         try {
-            $this->plugin->getDataHelper()->verifyApiKey($config['relevanzApiKey']);//throws exception
+            $userId = $this->plugin->getDataHelper()->verifyApiKey($config['relevanzApiKey']);//throws exception
             $data = array(
                 'Code' => $this->plugin->getLocalizationHelper()->translate('successCode'),
                 'Message' => $this->plugin->getLocalizationHelper()->translate('successMessage'),
