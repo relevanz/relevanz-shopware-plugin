@@ -37,7 +37,7 @@ class ProductExporter {
     /**
      * @param \Shopware\Bundle\StoreFrontBundle\Struct\ListProduct $product
      * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext $context
-     * @return \Releva\Retargeting\Shopware\Internal\ProductExportItem
+     * @return ProductExportItem
      */
     private function getProductExportItem ($product, $context) {
         $categoryIds = array();
