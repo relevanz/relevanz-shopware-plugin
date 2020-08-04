@@ -1,11 +1,10 @@
 <?php
 
 use Releva\Retargeting\Shopware\Internal\ProductExporter;
-use Symfony\Component\HttpFoundation\Response;
 
 class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
 {
-    private const ITEMS_PER_PAGE = 50;
+    const ITEMS_PER_PAGE = 50;
     
     public function preDispatch()
     {
@@ -25,12 +24,9 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
                     $page === null ? null : self::ITEMS_PER_PAGE,
                     $page === null ? 0 : $page * self::ITEMS_PER_PAGE
                 );
-                $this->Response()->setContent($exporter->getContents())->setStatusCode(200);
-                foreach ($exporter->getHttpHeaders() as $name => $value) {
-                    $this->Response()->setHeader($name, $value);
-                }
+                $this->setShopwareCompatibilityResponse(200, $exporter->getContents(), $exporter->getHttpHeaders());
             } catch (\Exception $exception) {
-                $this->Response()->setStatusCode($exception instanceof \Releva\Retargeting\Base\Exception\RelevanzException && $exception->getCode() === 1585554289 ? 400 : 500);
+                $this->setShopwareCompatibilityResponse($exception instanceof \Releva\Retargeting\Base\Exception\RelevanzException && $exception->getCode() === 1585554289 ? 400 : 500);
             }
         }
     }
@@ -38,7 +34,7 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
     public function callbackAction () {
         if ($this->checkCredentials()) {
             $shopInfo = new \Releva\Retargeting\Shopware\Internal\ShopInfo();
-            $this->Response()->setHeader( 'Content-Type', 'application/json; charset="utf-8"')->setContent(json_encode([
+            $this->setShopwareCompatibilityResponse(200, json_encode([
                 'plugin-version' => $shopInfo->getPluginVersion(),
                 'shop' => ['system' => $shopInfo->getShopSystem(), 'version' => $shopInfo->getShopVersion(), ],
                 'environment' => $shopInfo->getServerEnvironment(),
@@ -52,7 +48,7 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
                         ],
                     ],
                 ]
-            ], JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION));
+            ], JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION), array('Content-Type' => 'application/json; charset="utf-8"'));
         }
     }
     
@@ -62,10 +58,22 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
         if ($credentials->isComplete() && $credentials->getAuthHash() === $this->Request()->get('auth')) {
             return true;
         } else {
-            $this->Response()->setStatusCode(401);
+            $this->setShopwareCompatibilityResponse(401);
             Shopware()->Container()->get('plugins')->Backend()->Relevanz()->getMessageBridge()->addError('Wrong Credentials', array('code' => 1595659947, 'auth' => $this->Request()->get('auth')));
             return false;
         }
     }
-
+    
+    private function setShopwareCompatibilityResponse ($status, $content = '', $headers = array()) {
+        if ($this->Response() instanceof \Symfony\Component\HttpFoundation\Response) {
+            $this->Response()->setStatusCode($status)->setContent($content);
+        } else {
+            $this->Response()->setHttpResponseCode($status)->setBody($content);
+        }
+        foreach ($headers as $key => $value) {
+            $this->Response()->setHeader($key, $value);
+        }
+        return $this;
+    }
+    
 }

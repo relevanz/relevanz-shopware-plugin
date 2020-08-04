@@ -1,5 +1,11 @@
 function addRelevanzRetargetingJs () {
-    if ($.getCookiePreference('relevanz') === true && typeof relevanzRetargetingUrl !== "undefined" && $('#relevanzRetargetingJs').length === 0) {
+    if (
+        (
+            typeof $.getCookiePreference === "undefined" //no cookie-consent-tool
+            || $.getCookiePreference('relevanz') === true// cookie-consent-tool relevanz activated
+        )
+        && typeof relevanzRetargetingUrl !== "undefined" && $('#relevanzRetargetingJs').length === 0
+    ) {
         var script = document.createElement('script');
         script.id = "relevanzRetargetingJs"
         script.type = 'text/javascript';

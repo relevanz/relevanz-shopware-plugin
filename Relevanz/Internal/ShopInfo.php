@@ -2,16 +2,20 @@
 namespace Releva\Retargeting\Shopware\Internal;
 class ShopInfo extends \Releva\Retargeting\Base\AbstractShopInfo {
     
-    public static function getShopSystem(): string {
+    public static function getShopSystem() {
         return 'Shopware';
     }
     
-    public static function getShopVersion(): string {
-        $release = \Shopware()->Container()->get('kernel')->getRelease();
-        return $release['version'].' - r'.$release['revision'];
+    public static function getShopVersion() {
+        if (method_exists(\Shopware()->Container()->get('kernel'), 'getRelease')) {
+            $release = \Shopware()->Container()->get('kernel')->getRelease();
+            return $release['version'].' - r'.$release['revision'];
+        } else {//older shopware
+            return \Shopware\Kernel::VERSION.' - r'.\Shopware\Kernel::REVISION;
+        }
     }
 
-    public static function getPluginVersion(): string
+    public static function getPluginVersion()
     {
         return \Shopware()->Container()->get('plugins')->Backend()->Relevanz()->getVersion();
     }
@@ -24,11 +28,11 @@ class ShopInfo extends \Releva\Retargeting\Base\AbstractShopInfo {
         ];
     }
     
-    public static function getUrlCallback(): string {
+    public static function getUrlCallback() {
         return \Shopware()->Front()->Router()->assemble(array('module' => 'frontend', 'controller' => 'relevanz', 'action' => 'callback'));
     }
 
-    public static function getUrlProductExport(): string {
+    public static function getUrlProductExport() {
         return \Shopware()->Front()->Router()->assemble(array('module' => 'frontend', 'controller' => 'relevanz', 'action' => 'productexport'));
     }
 
