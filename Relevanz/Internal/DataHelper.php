@@ -27,7 +27,7 @@ class DataHelper extends AbstractHelper {
             $this->getPlugin()->getMessageBridge()->addInfo('Success', ['method' => __METHOD__, 'apiKey' => $apiKey, 'params' => $params, ]);
             return $credentials->getUserId();
         } catch (\Releva\Retargeting\Base\Exception\RelevanzException $exception) {
-            $this->getPlugin()->getMessageBridge()->addError(vprintf($exception->getMessage(), $exception->getSprintfArgs()), ['method' => __METHOD__, 'code' => $exception->getCode(), 'apiKey' => $apiKey, 'params' => $params, ]);
+            $this->getPlugin()->getMessageBridge()->addError(vsprintf($exception->getMessage(), $exception->getSprintfArgs()), ['method' => __METHOD__, 'code' => $exception->getCode(), 'apiKey' => $apiKey, 'params' => $params, ]);
             throw($exception);
         } catch (\Exception $exception) {
             $this->getPlugin()->getMessageBridge()->addFatal($exception->getMessage(), ['method' => __METHOD__, 'code' => $exception->getCode(), 'apiKey' => $apiKey, 'params' => $params, ]);
