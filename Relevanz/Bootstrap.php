@@ -77,7 +77,8 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     }
 
     public function update($oldVersion) {
-        return $this->install();
+        $this->install();
+        return $this->enable();
     }
 
     public function enable() {
