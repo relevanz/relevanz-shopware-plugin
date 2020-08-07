@@ -57,14 +57,16 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
             ->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element', 'onShopwareControllersBackendConfigAfterSaveConfigElement')
             ->registerController('Backend', 'Relevanz')
         ;
-        $this->createMenuItem(array(
-            'label' => 'releva.nz',
-            'controller' => 'Relevanz',
-            'action' => 'Index',
-            'class' => 'sprite-globe',
-            'active' => 1,
-            'parent' => $this->Menu()->findOneBy(array('label' => 'Marketing')),
-        ));
+        if($this->Menu()->findOneBy(array('controller' => 'Relevanz')) === null) {
+            $this->createMenuItem(array(
+                'label' => 'releva.nz',
+                'controller' => 'Relevanz',
+                'action' => 'Index',
+                'class' => 'sprite-globe',
+                'active' => 1,
+                'parent' => $this->Menu()->findOneBy(array('label' => 'Marketing')),
+            ));
+        }
         $this->getFormHelper()->setConfigForm($this->Form());
         $this->addFormTranslations($this->getFormHelper()->getFormTranslations($this->Form(), $this->getLocalizationHelper()));
         return true;
@@ -75,7 +77,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     }
 
     public function update($oldVersion) {
-        return true;
+        return $this->install();
     }
 
     public function enable() {
@@ -91,7 +93,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
             'invalidateCache' => array('config', 'backend', 'theme')
         );
     }
-
+    
     public function afterInit()
     {
         !file_exists(__DIR__ . '/vendor/autoload.php') || require_once __DIR__ . '/vendor/autoload.php';
@@ -117,11 +119,11 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     public function onEnlightControllerActionPostDispatchSecureFrontend(Enlight_Controller_ActionEventArgs $args) {
         $subject = $args->getSubject();
         $request = $subject->Request();
+        $view = $subject->View();
+        $view->addTemplateDir($this->Path() . 'Views/');
         if ($request->isXmlHttpRequest()) {
             return;
         }
-        $view = $subject->View();
-        $view->addTemplateDir(__DIR__ . '/Views/');
         $view->baseURLRT = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_TRACKER_URL . '?t=d&';
         $view->baseURLConv = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_CONV_URL . 'Netw?';
         $view->CampaignID = $this->getDataHelper()->getData('relevanzUserID');
