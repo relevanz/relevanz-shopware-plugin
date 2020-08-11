@@ -1,8 +1,8 @@
 function addRelevanzRetargetingJs () {
     if (
         (
-            typeof $.getCookiePreference === "undefined" //no cookie-consent-tool
-            || $.getCookiePreference('relevanz') === true// cookie-consent-tool relevanz activated
+            (typeof relevanzRetargetingForcePixel !== "undefined" && relevanzRetargetingForcePixel === true)// force pixel by shopowner
+            || (typeof $.getCookiePreference !== "undefined" && $.getCookiePreference('relevanz') === true)// cookie-consent-tool relevanz activated
         )
         && typeof relevanzRetargetingUrl !== "undefined" && $('#relevanzRetargetingJs').length === 0
     ) {

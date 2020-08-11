@@ -9,5 +9,6 @@
     "relevanzUserID":"releva.nz User ID",
     "relevanzApiKey":"releva.nz API Key",
     "relevanzButtonClientTest":"Test API Key now",
-    "relevanzButtonClientRegister":"Not registered yet? Now catch up"
+    "relevanzButtonClientRegister":"Not registered yet? Now catch up",
+    "relevanzAlternativeCookieCheckJs":"Alternative cookie consent JS (Expert-Setting)"
 }

@@ -9,6 +9,7 @@ class FormHelper extends AbstractHelper {
             ->addConfigApiKey($form)
             ->addConfigApiTestButton($form)
             ->addConfigRegisterButton($form)
+            ->addConfigAlternativeCookieCheckJs($form)
         ;
         return $form;
     }
@@ -66,4 +67,17 @@ class FormHelper extends AbstractHelper {
         return $this;
     }
     
+    /**
+     * @param \Shopware\Models\Config\Form $form
+     * @return $this
+     */
+    private function addConfigAlternativeCookieCheckJs($form) {
+        $form->setElement('textarea', 'relevanzAlternativeCookieCheckJs', array(
+            'label' => 'Consent JS',
+            'scope' => \Shopware\Models\Config\Element::SCOPE_SHOP,
+            'description' => 'If you doesn\'t use shopware cookie consent manager, you can define alternative cookie check here.<br /><br />Example: <p style="color:silver;">//Pixels will included without any cookie check<br />var relevanzRetargetingForcePixel = true;</p>',
+            'value' => "/**\n * This example allows relevanz always to load retargeting-pixel.\n * To activate it just delete the // in the following line.\n */\n// var relevanzRetargetingForcePixel = true;",
+        ));
+        return $this;
+    }
 }

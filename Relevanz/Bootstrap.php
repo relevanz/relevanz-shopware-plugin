@@ -128,6 +128,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         $view->baseURLRT = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_TRACKER_URL . '?t=d&';
         $view->baseURLConv = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_CONV_URL . 'Netw?';
         $view->CampaignID = $this->getDataHelper()->getData('relevanzUserID');
+        $view->alternativeCookieCheckJs = $this->getDataHelper()->getData('relevanzAlternativeCookieCheckJs');
     }
     
     public function onCookieCollectorCollectCookies(Enlight_Event_EventArgs $event) {

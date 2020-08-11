@@ -42,5 +42,8 @@
     <script type="text/javascript">{literal}
         var relevanzRetargetingUrl = "{/literal}{$url}{literal}";
     {/literal}</script>
+    {if $alternativeCookieCheckJs}
+        <script type="text/javascript">{$alternativeCookieCheckJs}</script>
+    {/if}
   {/if}
 {/block}
