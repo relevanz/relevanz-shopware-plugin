@@ -6,7 +6,6 @@ Ext.define('Shopware.apps.Relevanz', {
 	launch: function() {
 
 		var me = this;
-		var config = Ext.JSON.decode('{$waveConfigJson}');
 
 		var advancedPanel = Ext.create('Ext.form.Panel', {
 			//title: json.snippets.advancedStatistics,
@@ -21,7 +20,7 @@ Ext.define('Shopware.apps.Relevanz', {
 					id    : 'iframe-win',
 					autoEl : {
 						tag : "iframe",
-						src : "https://customer.releva.nz/?apikey=" + config.relevanzApiKey
+						src : '{$relevanzIFrameUrl}' + '{$relevanzApiKey}'
 					}
 				}
 			],
@@ -37,7 +36,7 @@ Ext.define('Shopware.apps.Relevanz', {
 			width: 1000,
 			layout: 'vbox',
 			align: 'stretch',
-			alias: 'wave-cdn-window',
+			alias: 'relevanz-window',
 			items: [ advancedPanel ]
 		});
 

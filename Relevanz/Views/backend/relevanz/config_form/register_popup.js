@@ -1,1 +1,1 @@
-window.open('http://www.releva.nz', '_blank'); 
+window.open('https://releva.nz', '_blank'); 

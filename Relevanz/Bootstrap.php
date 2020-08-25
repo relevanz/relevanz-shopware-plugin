@@ -103,13 +103,13 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     
     public function getInfo() {
         return array(
-            'version' => '1.1.2',
+            'version' => '1.1.3',
             'author' => 'releva.nz',
             'label' => 'releva.nz retargeting',
-            'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="http://www.releva.nz" target="_blank">Not registered yet? Now catch up</a></p>',
+            'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="https://releva.nz" target="_blank">Not registered yet? Now catch up</a></p>',
             'copyright' => 'Copyright © 2016-2018, releva.nz',
             'support' => 'support@releva.nz',
-            'link' => 'http://www.releva.nz',
+            'link' => 'https://releva.nz',
         );
     }
 
@@ -148,12 +148,10 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     
     public function onEnlightControllerActionPostDispatchBackendRelevanz(Enlight_Event_EventArgs $args) {
         $view = $args->getSubject()->View();
-        $view->waveCdnSnippets = json_encode($this->getLocalizationHelper()->readTranslations());
         $view->addTemplateDir($this->Path() . 'Views/');
         $view->extendsTemplate('backend/relevanz/marketing_statistic.js');
-        $view->waveConfigJson = json_encode(array(
-            'relevanzApiKey' => $this->getDataHelper()->getData('relevanzApiKey'),
-        ));
+        $view->relevanzIFrameUrl = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_STATS_FRAME;
+        $view->relevanzApiKey = $this->getDataHelper()->getData('relevanzApiKey');
     }
 
     public function onEnlightControllerActionPostDispatchBackendIndex(Enlight_Event_EventArgs $args) {

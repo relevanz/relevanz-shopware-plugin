@@ -1,5 +1,3 @@
-//window.dataSnippets = Ext.JSON.decode('{$waveCdnSnippets}');
-
 var pnl = btn.up('panel');
 var url = document.location.pathname + 'Relevanz/testClient';
 var els = pnl.query('[isFormField]'),
@@ -55,7 +53,7 @@ Ext.Ajax.request({
             width: 440,
             log: false,
             btnDetail: {
-                link: 'http://www.releva.nz'
+                link: 'https://releva.nz'
             }
         });
     },
@@ -69,7 +67,7 @@ Ext.Ajax.request({
             width: 440,
             log: false,
             btnDetail: {
-                link: 'http://www.releva.nz'
+                link: 'https://releva.nz'
             }
         });
     }
