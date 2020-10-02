@@ -136,7 +136,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         $collection->add(new \Shopware\Bundle\CookieBundle\Structs\CookieStruct(
             'relevanz',
             '/^relevanz/',
-            'releva.nz Retargeting',
+            $this->get('snippets')->getNamespace('frontend/relevanz/cookie_consent/cookie')->get('cookie/label', 'releva.nz Retargeting', true),
             Shopware\Bundle\CookieBundle\Structs\CookieGroupStruct::STATISTICS
         ));
         return $collection;
