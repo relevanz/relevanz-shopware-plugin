@@ -103,7 +103,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     
     public function getInfo() {
         return array(
-            'version' => '1.1.4',
+            'version' => '1.1.5',
             'author' => 'releva.nz',
             'label' => 'releva.nz retargeting',
             'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="https://releva.nz" target="_blank">Not registered yet? Now catch up</a></p>',

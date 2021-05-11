@@ -41,7 +41,7 @@ class ProductExporter {
      */
     private function getProductExportItem ($product, $context) {
         $categoryIds = array();
-        foreach ($product->getCategories() as $category) {
+        foreach (($product->getCategories() === null ? [] : $product->getCategories()) as $category) {
             if (in_array($context->getShop()->getCategory()->getId(), $category->getPath())) {
                 $categoryIds[] = $category->getId();
             }
@@ -55,7 +55,7 @@ class ProductExporter {
             (float) $product->getCheapestPrice()->getCalculatedPseudoPrice(),
             (float) $product->getCheapestPrice()->getCalculatedPrice(),
             (string) \Shopware()->Front()->Router()->assemble(array('module' => 'frontend', 'sViewport' => 'detail', 'sArticle' => $product->getId())),
-            (string) $product->getCover()->getFile()
+            (string) ($product->getCover() === null ? '' : $product->getCover()->getFile())
          );
     }
     
