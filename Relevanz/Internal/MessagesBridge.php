@@ -16,16 +16,16 @@ class MessagesBridge {
     }
     
     public function addError($message, $context = array()) {
-        $this->getLogger()->addError($message, $context);
+        $this->getLogger()->error($message, $context);
     }
     
     public function addInfo($message, $context = array()) {
-        $this->getLogger()->addInfo($message, $context);
+        $this->getLogger()->info($message, $context);
         return $this;
     }
     
     public function addFatal ($message, $context) {
-        $this->getLogger()->addCritical($message, $context);
+        $this->getLogger()->critical($message, $context);
         return $this;
     }
 }
