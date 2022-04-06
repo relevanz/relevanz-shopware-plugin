@@ -8,6 +8,7 @@
     "error_1553935480":"Kann keine Verbindung zum releva.nz API-Server herstellen.",
     "relevanzUserID":"releva.nz User ID",
     "relevanzApiKey":"releva.nz API Key",
+    "relevanzTrackingActive": "Tracking aktiviert",
     "relevanzButtonClientTest":"Jetzt API Key testen",
     "relevanzButtonClientRegister":"Noch nicht registriert? Jetzt nachholen",
     "relevanzAlternativeCookieCheckJs":"Alternatives Cookie Consent JS (Experteneinstellung)"

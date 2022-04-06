@@ -3,42 +3,42 @@
 class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Plugin_Bootstrap {
 
     private $messageBridge;
-    
+
     private $localizationHelper;
-    
+
     private $formHelper;
-    
+
     private $dataHelper;
-    
-    
+
+
     public function getMessageBridge () {
         if ($this->messageBridge === null) {
             $this->messageBridge = new \Releva\Retargeting\Shopware\Internal\MessagesBridge();
         }
         return $this->messageBridge;
     }
-    
+
     public function getLocalizationHelper () {
         if ($this->localizationHelper === null) {
             $this->localizationHelper = new \Releva\Retargeting\Shopware\Internal\LocalizationHelper();
         }
         return $this->localizationHelper;
     }
-    
+
     public function getFormHelper () {
         if ($this->formHelper === null) {
             $this->formHelper = new \Releva\Retargeting\Shopware\Internal\FormHelper();
         }
         return $this->formHelper;
     }
-    
+
     public function getDataHelper () {
         if ($this->dataHelper === null) {
             $this->dataHelper = new \Releva\Retargeting\Shopware\Internal\DataHelper();
         }
         return $this->dataHelper;
     }
-    
+
     /*
      * -------------------------
      * General setup
@@ -94,16 +94,16 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
             'invalidateCache' => array('config', 'backend', 'theme')
         );
     }
-    
+
     public function afterInit()
     {
         !file_exists(__DIR__ . '/vendor/autoload.php') || require_once __DIR__ . '/vendor/autoload.php';
         $this->get('Loader')->registerNamespace('Releva\Retargeting\Shopware\Internal', $this->Path().'Internal/');
     }
-    
+
     public function getInfo() {
         return array(
-            'version' => '1.1.7',
+            'version' => '1.2.1',
             'author' => 'releva.nz',
             'label' => 'releva.nz retargeting',
             'description' => '<p style="font-size:12px; font-weight: bold;">releva.nz retargeting<br /><a href="https://releva.nz" target="_blank">Not registered yet? Now catch up</a></p>',
@@ -116,7 +116,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
     public function getVersion() {
         return $this->info->get('version');
     }
-    
+
     public function onEnlightControllerActionPostDispatchSecureFrontend(Enlight_Controller_ActionEventArgs $args) {
         $subject = $args->getSubject();
         $request = $subject->Request();
@@ -125,27 +125,32 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         if ($request->isXmlHttpRequest()) {
             return;
         }
+        $userData = Shopware()->Modules()->Admin()->sGetUserData();
+        $view->userNumber = isset($userData['additional']['user']['customernumber']) ? $userData['additional']['user']['customernumber'] : null;
+        $view->trackingActive = $this->getDataHelper()->getData('relevanzTrackingActive');
         $view->baseURLRT = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_TRACKER_URL . '?t=d&';
         $view->baseURLConv = \Releva\Retargeting\Base\RelevanzApi::RELEVANZ_CONV_URL . 'Netw?';
         $view->CampaignID = $this->getDataHelper()->getData('relevanzUserID');
         $view->alternativeCookieCheckJs = $this->getDataHelper()->getData('relevanzAlternativeCookieCheckJs');
     }
-    
+
     public function onCookieCollectorCollectCookies(Enlight_Event_EventArgs $event) {
-        $collection = new \Shopware\Bundle\CookieBundle\CookieCollection();
-        $collection->add(new \Shopware\Bundle\CookieBundle\Structs\CookieStruct(
-            'relevanz',
-            '/^relevanz/',
-            $this->get('snippets')->getNamespace('frontend/relevanz/cookie_consent/cookie')->get('cookie/label', 'releva.nz Retargeting', true),
-            Shopware\Bundle\CookieBundle\Structs\CookieGroupStruct::STATISTICS
-        ));
-        return $collection;
+        if ($this->getDataHelper()->getData('relevanzTrackingActive')) {
+            $collection = new \Shopware\Bundle\CookieBundle\CookieCollection();
+            $collection->add(new \Shopware\Bundle\CookieBundle\Structs\CookieStruct(
+                'relevanz',
+                '/^relevanz/',
+                $this->get('snippets')->getNamespace('frontend/relevanz/cookie_consent/cookie')->get('cookie/label', 'releva.nz Retargeting', true),
+                Shopware\Bundle\CookieBundle\Structs\CookieGroupStruct::STATISTICS
+            ));
+            return $collection;
+        }
     }
 
     public function onThemeCompilerCollectPluginJavascript(Enlight_Event_EventArgs $args) {
         return new Doctrine\Common\Collections\ArrayCollection(array(__DIR__ . '/Views/frontend/_public/src/js/relevanz.js'));
     }
-    
+
     public function onEnlightControllerActionPostDispatchBackendRelevanz(Enlight_Event_EventArgs $args) {
         $view = $args->getSubject()->View();
         $view->addTemplateDir($this->Path() . 'Views/');
@@ -159,7 +164,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         $view = $controller->View();
         $view->addTemplateDir($this->Path() . 'Views/');
     }
-    
+
     public function onEnlightControllerDispatcherControllerPathFrontendRelevanz(Enlight_Event_EventArgs $args) {
         return $this->Path() . '/Controllers/Frontend/Relevanz.php';
     }
@@ -168,7 +173,7 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
         $this->Application()->Template()->addTemplateDir($this->Path() . 'Views/');
         return $this->Path() . '/Controllers/Backend/Relevanz.php';
     }
-    
+
     public function onShopwareControllersBackendConfigAfterSaveConfigElement($params) {
         if ($params['element']->getName() == 'relevanzApiKey') {
             $form = $this->Form();
@@ -198,5 +203,5 @@ class Shopware_Plugins_Backend_Relevanz_Bootstrap extends Shopware_Components_Pl
             }
         }
     }
-    
+
 }

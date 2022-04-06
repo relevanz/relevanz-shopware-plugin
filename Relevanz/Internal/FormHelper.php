@@ -9,6 +9,7 @@ class FormHelper extends AbstractHelper {
             ->addConfigApiKey($form)
             ->addConfigApiTestButton($form)
             ->addConfigRegisterButton($form)
+            ->addConfigActivateTracking($form)
             ->addConfigAlternativeCookieCheckJs($form)
         ;
         return $form;
@@ -45,6 +46,14 @@ class FormHelper extends AbstractHelper {
             'label' => 'relevan.nz API Key',
             'scope' => \Shopware\Models\Config\Element::SCOPE_SHOP,
             'stripCharsRe' => ' ',
+        ));
+        return $this;
+    }
+    
+    private function addConfigActivateTracking($form) {
+        $form->setElement('boolean', 'relevanzTrackingActive', array(
+            'value' => true,
+            'scope' => \Shopware\Models\Config\Element::SCOPE_SHOP,
         ));
         return $this;
     }

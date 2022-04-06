@@ -4,25 +4,26 @@ use Releva\Retargeting\Shopware\Internal\ProductExporter;
 
 class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
 {
-    const ITEMS_PER_PAGE = 50;
-    
+    const PRODUCT_EXPORT_LIMIT = 100;
+
     public function preDispatch()
     {
         Shopware()->Plugins()->Controller()->ViewRenderer()->setNoRender();
     }
-    
+
     public function productExportAction () {
         if ($this->checkCredentials()) {
             $request = $this->Request();
             $page = (int) $request->get('page') < 1 ? null : (int) $request->get('page') - 1;
+            $limit = (int) $request->get('limit') < 1 ? self::PRODUCT_EXPORT_LIMIT : (int) $request->get('limit');
             $context = $this->container->get('shopware_storefront.context_service')->getShopContext();
             $criteria = $this->container->get('shopware_search.store_front_criteria_factory')->createListingCriteria($this->Request(), $context);
             try {
                 $productExporter = new ProductExporter();
                 $exporter = $productExporter->export($context, $criteria,
                     $request->get('format') === 'json' ? ProductExporter::FORMAT_JSON : ProductExporter::FORMAT_CSV,
-                    $page === null ? null : self::ITEMS_PER_PAGE,
-                    $page === null ? 0 : $page * self::ITEMS_PER_PAGE
+                    $page === null ? null : $limit,
+                    $page === null ? 0 : $page * $limit
                 );
                 $this->setShopwareCompatibilityResponse(200, $exporter->getContents(), $exporter->getHttpHeaders());
             } catch (\Exception $exception) {
@@ -30,7 +31,7 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
             }
         }
     }
-    
+
     public function callbackAction () {
         if ($this->checkCredentials()) {
             $shopInfo = new \Releva\Retargeting\Shopware\Internal\ShopInfo();
@@ -44,14 +45,15 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
                         'url' => $shopInfo->getUrlProductExport(),
                         'parameters' => [
                             'format' => ['values' => ['csv', 'json'], 'default' => 'csv', 'optional' => true, ],
-                            'page' => ['type' => 'integer', 'optional' => true, 'info' => ['items-per-page' => self::ITEMS_PER_PAGE, ], ],
+                            'page' => ['type' => 'integer', 'optional' => true, ],
+                            'limit' => ['type' => 'integer',  'default' => self::PRODUCT_EXPORT_LIMIT, 'optional' => true,],
                         ],
                     ],
                 ]
             ], JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION), array('Content-Type' => 'application/json; charset="utf-8"'));
         }
     }
-    
+
     private function checkCredentials() {
         $dataHelper = Shopware()->Container()->get('plugins')->Backend()->Relevanz()->getDataHelper();
         $credentials = new Releva\Retargeting\Base\Credentials($dataHelper->getData('relevanzApiKey'), $dataHelper->getData('relevanzUserID'));
@@ -63,7 +65,7 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
             return false;
         }
     }
-    
+
     private function setShopwareCompatibilityResponse ($status, $content = '', $headers = array()) {
         if ($this->Response() instanceof \Symfony\Component\HttpFoundation\Response) {
             $this->Response()->setStatusCode($status)->setContent($content);
@@ -75,5 +77,5 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
         }
         return $this;
     }
-    
+
 }
