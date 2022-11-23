@@ -7,6 +7,7 @@ use Releva\Retargeting\Base\Export\ProductJsonExporter;
 use Releva\Retargeting\Base\Export\Item\ProductExportItem;
 
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\ImmediateDeliveryCondition;
 
 class ProductExporter {
     
@@ -19,6 +20,7 @@ class ProductExporter {
      */
     public function export($context, $criteria, $format = 'csv', $limit = null, $offset = 0) {
         $criteria->addCondition(new CategoryCondition(array($context->getShop()->getCategory()->getId())));
+        $criteria->addCondition(new ImmediateDeliveryCondition());
         $criteria->limit($limit);
         $criteria->offset($offset);
         /* @var $productResult \Shopware\Bundle\SearchBundle\ProductSearchResult */
