@@ -6,6 +6,8 @@ rsync -a --exclude=nbproject --exclude=.git --exclude=.gitignore --exclude=.gitm
 
 #install
 composer install --no-dev -n -o -d Backend/Relevanz
-#zip + clean
-zip -r RelevaRetargeting.zip Backend
+if [ -d "Backend/Relevanz/vendor" ]; then
+    #zip + clean
+    zip -r RelevaRetargeting.zip Backend
+fi
 rm -rf Backend
