@@ -2,6 +2,9 @@
 
 use Releva\Retargeting\Shopware\Internal\ProductExporter;
 
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\ImmediateDeliveryCondition;
+
 class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
 {
     const PRODUCT_EXPORT_LIMIT = 100;
@@ -14,16 +17,21 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
     public function productExportAction () {
         if ($this->checkCredentials()) {
             $request = $this->Request();
-            $page = (int) $request->get('page') < 1 ? null : (int) $request->get('page') - 1;
-            $limit = (int) $request->get('limit') < 1 ? self::PRODUCT_EXPORT_LIMIT : (int) $request->get('limit');
             $context = $this->container->get('shopware_storefront.context_service')->getShopContext();
             $criteria = $this->container->get('shopware_search.store_front_criteria_factory')->createListingCriteria($this->Request(), $context);
+            $criteria->addCondition(new CategoryCondition(array($context->getShop()->getCategory()->getId())));
+            if ($request->get('immediate_delivery') !== '0') {
+                $criteria->addCondition(new ImmediateDeliveryCondition());
+            }
+            $page = (int) $request->get('page') < 1 ? null : (int) $request->get('page') - 1;
+            $limit = (int) $request->get('limit') < 1 ? self::PRODUCT_EXPORT_LIMIT : (int) $request->get('limit');
+            $criteria->limit($page === null ? null : $limit);
+            $criteria->offset($page === null ? 0 : $page * $limit);
+            
             try {
                 $productExporter = new ProductExporter();
                 $exporter = $productExporter->export($context, $criteria,
-                    $request->get('format') === 'json' ? ProductExporter::FORMAT_JSON : ProductExporter::FORMAT_CSV,
-                    $page === null ? null : $limit,
-                    $page === null ? 0 : $page * $limit
+                    $request->get('format') === 'json' ? ProductExporter::FORMAT_JSON : ProductExporter::FORMAT_CSV
                 );
                 $this->setShopwareCompatibilityResponse(200, $exporter->getContents(), $exporter->getHttpHeaders());
             } catch (\Exception $exception) {
@@ -46,7 +54,8 @@ class Shopware_Controllers_Frontend_Relevanz extends Enlight_Controller_Action
                         'parameters' => [
                             'format' => ['values' => ['csv', 'json'], 'default' => 'csv', 'optional' => true, ],
                             'page' => ['type' => 'integer', 'optional' => true, ],
-                            'limit' => ['type' => 'integer',  'default' => self::PRODUCT_EXPORT_LIMIT, 'optional' => true,],
+                            'limit' => ['type' => 'integer', 'default' => self::PRODUCT_EXPORT_LIMIT, 'optional' => true, ],
+                            'immediate_delivery' => ['type' => 'bool', 'default' => true, 'optional' => true, ]
                         ],
                     ],
                 ]

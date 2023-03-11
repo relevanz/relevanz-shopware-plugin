@@ -6,23 +6,16 @@ use Releva\Retargeting\Base\Export\ProductCsvExporter;
 use Releva\Retargeting\Base\Export\ProductJsonExporter;
 use Releva\Retargeting\Base\Export\Item\ProductExportItem;
 
-use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
-use Shopware\Bundle\SearchBundle\Condition\ImmediateDeliveryCondition;
-
 class ProductExporter {
-    
+
     const FORMAT_CSV = 'csv';
-    
+
     const FORMAT_JSON = 'json';
-    
+
     /**
      * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext $context
      */
-    public function export($context, $criteria, $format = 'csv', $limit = null, $offset = 0) {
-        $criteria->addCondition(new CategoryCondition(array($context->getShop()->getCategory()->getId())));
-        $criteria->addCondition(new ImmediateDeliveryCondition());
-        $criteria->limit($limit);
-        $criteria->offset($offset);
+    public function export($context, $criteria, $format = 'csv') {
         /* @var $productResult \Shopware\Bundle\SearchBundle\ProductSearchResult */
         $productResult = \Shopware()->Container()->get('shopware_search.product_search')->search($criteria, $context);
         $products = $productResult->getProducts();
@@ -35,7 +28,7 @@ class ProductExporter {
         }
         return $exporter;
     }
-    
+
     /**
      * @param \Shopware\Bundle\StoreFrontBundle\Struct\ListProduct $product
      * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext $context
@@ -60,5 +53,5 @@ class ProductExporter {
             (string) ($product->getCover() === null ? '' : $product->getCover()->getFile())
          );
     }
-    
+
 }
